@@ -84,6 +84,13 @@ INSERT INTO employee  VALUES
 (104, 'Sneha', 70000, '2021-02-18',"Finance"),
 (105, 'Arjun', 65000, '2020-11-25',"Sales");
 
+-- How to write query to fetch highest salary
+
+select max(salary)
+    from employee
+    order by salary desc
+    limit;
+
 --  How to write a query to find all employees who joined in the year 2020? 
 
 select emp_name,hire_date from employee
