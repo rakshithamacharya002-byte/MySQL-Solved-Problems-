@@ -84,13 +84,6 @@ INSERT INTO employee  VALUES
 (104, 'Sneha', 70000, '2021-02-18',"Finance"),
 (105, 'Arjun', 65000, '2020-11-25',"Sales");
 
--- How to write query to fetch highest salary
-
-select max(salary)
-    from employee
-    order by salary desc
-    limit;
-
 --  How to write a query to find all employees who joined in the year 2020? 
 
 select emp_name,hire_date from employee
@@ -324,3 +317,289 @@ having number_emp < 3;
 select * ,timestampdiff(year,hire_date,curdate()) as years_experience
 from e
 where timestampdiff(year,hire_date,curdate()) >3;
+
+
+-- Nth Highest salary using User defined Functions
+
+set global log_bin_trust_function_creators = 1;
+
+CREATE FUNCTION `Nth_highest_salary`(n int)
+RETURNS int
+BEGIN
+RETURN (select salary from employees
+order by salary desc limit n);
+END;
+
+-- Write a SQL query to rank scores. If there is a tie between two scores, both should have the same ranking. 
+-- Note that after a tie, the next ranking number should be the next consecutive integer value. In other words, there should be no "holes" between ranks.
+
+CREATE TABLE scores (
+    student_id INT,
+    student_name VARCHAR(50),
+    subject VARCHAR(50),
+    score INT
+);
+
+INSERT INTO scores VALUES
+(1,'Arjun','Math',95),
+(2,'Rahul','Math',88),
+(3,'Sneha','Math',95),
+(4,'Kiran','Math',80),
+(5,'Anita','Math',88),
+(6,'Ravi','Math',76),
+(7,'Priya','Math',95),
+(8,'Manoj','Math',70),
+(9,'Deepa','Math',80),
+(10,'Suresh','Math',65),
+(11,'Asha','Math',88),
+(12,'Vikram','Math',92),
+(13,'Nisha','Math',92),
+(14,'Rohit','Math',85),
+(15,'Pooja','Math',70),
+(16,'Ajay','Math',76),
+(17,'Divya','Math',95),
+(18,'Karthik','Math',88),
+(19,'Meena','Math',80),
+(20,'Tarun','Math',65),
+(21,'Neha','Math',92),
+(22,'Varun','Math',70),
+(23,'Lakshmi','Math',76),
+(24,'Harish','Math',85),
+(25,'Swathi','Math',92);
+
+
+select * , dense_rank() over(order by score desc) as `rank`
+from scores;
+
+-- Employee more than manager
+
+CREATE TABLE em (
+    emp_id INT,
+    emp_name VARCHAR(50),
+    salary INT,
+    manager_id INT
+);
+
+INSERT INTO em VALUES
+(1,'Arjun',90000,NULL),
+(2,'Rahul',60000,1),
+(3,'Sneha',95000,1),
+(4,'Kiran',50000,2),
+(5,'Anita',65000,2),
+(6,'Ravi',70000,3),
+(7,'Priya',98000,3),
+(8,'Manoj',45000,4),
+(9,'Deepa',55000,4),
+(10,'Suresh',62000,5),
+(11,'Asha',75000,5),
+(12,'Vikram',80000,6),
+(13,'Nisha',72000,6),
+(14,'Rohit',88000,7),
+(15,'Pooja',93000,7);
+
+select * from em;
+
+select e1.emp_name,e1.salary as 'employee salary', e2.emp_name  as 'Manager name', e2.salary as 'manager salary'
+from em e1
+join em e2
+on e1.manager_id = e2.emp_id
+where e1.salary> e2.salary;
+
+-- How to Find out duplicate emails 
+
+CREATE TABLE person (
+    id INT,
+    email VARCHAR(100)
+);
+
+INSERT INTO person VALUES
+(1,'a@gmail.com'),
+(2,'b@gmail.com'),
+(3,'a@gmail.com'),
+(4,'c@gmail.com'),
+(5,'b@gmail.com'),
+(6,'d@gmail.com'),
+(7,'a@gmail.com'),
+(8,'e@gmail.com');
+
+select * from person;
+
+select email
+from person
+group by email
+having count(*) > 1;
+ 
+-- or
+
+select distinct email from
+(select *, row_number() over(partition by email) as rw
+from person) as temp
+where rw >1;
+
+-- WAQTD Customers who have never ordered anything
+
+CREATE TABLE customers (
+    customer_id INT,
+    customer_name VARCHAR(50)
+);
+
+CREATE TABLE orders (
+    order_id INT,
+    customer_id INT
+);
+
+INSERT INTO customers VALUES
+(1,'Arjun'),
+(2,'Sneha'),
+(3,'Rahul'),
+(4,'Priya'),
+(5,'Kiran'),
+(6,'Anita');
+
+INSERT INTO orders VALUES
+(101,1),
+(102,3),
+(103,3),
+(104,4);
+
+select c.customer_name 
+from customers   c
+left join orders o
+on c.customer_id = o.customer_id
+where o.customer_id is null;
+
+CREATE TABLE empp (
+    emp_id INT,
+    emp_name VARCHAR(50),
+    department VARCHAR(50),
+    salary INT
+);
+ 
+INSERT INTO empp VALUES
+(101, 'Rahul', 'IT', 70000),
+(102, 'Sneha', 'IT', 90000),
+(103, 'Amit', 'IT', 85000),
+(104, 'John', 'HR', 60000),
+(105, 'Priya', 'HR', 75000),
+(106, 'David', 'HR', 75000),
+(107, 'Karan', 'Sales', 65000),
+(108, 'Neha', 'Sales', 72000),
+(109, 'Ravi', 'Sales', 72000),
+(110, 'Anjali', 'Finance', 80000),
+(111, 'Vikram', 'Finance', 95000),
+(112, 'Sara', 'Finance', 90000);
+
+select * from empp;
+
+-- 	Department wise Highest salary
+
+select department ,max(salary) as Highest_salary
+from empp
+group by department ;
+
+
+select emp_name,salary,department
+from(select *,dense_rank() over(partition by department order by salary desc) as rk
+from empp) temp
+where rk = 1;
+
+
+CREATE TABLE Department (
+    id INT PRIMARY KEY,
+    name VARCHAR(50)
+);
+
+INSERT INTO Department VALUES
+(1, 'IT'),
+(2, 'Sales'),
+(3, 'HR'),
+(4, 'Finance');
+
+CREATE TABLE Emp_data(
+    id INT PRIMARY KEY,
+    name VARCHAR(50),
+    salary INT,
+    departmentId INT
+);
+
+INSERT INTO Emp_data VALUES
+(1, 'Joe', 70000, 1),
+(2, 'Jim', 90000, 1),
+(3, 'Henry', 80000, 2),
+(4, 'Sam', 60000, 2),
+(5, 'Max', 90000, 1),
+(6, 'Ravi', 75000, 3),
+(7, 'Anjali', 85000, 4),
+(8, 'Kiran', 85000, 4);
+
+select * from emp_data;
+select * from department;
+
+-- Fetch Employee_name with higest salary in each department
+
+select e.name as emp_name, d.name as dept_name, e.salary
+from emp_data e
+join department d
+on e.departmentid = d.id
+where (e.departmentid ,e.salary) in(
+select departmentid , max(salary) 
+from emp_data
+group by departmentid);
+
+
+with combined_data as (select e.name as emp_name, d.name as dept_name, e.salary as salary
+from emp_data e
+join department d
+on e.departmentid = d.id),
+ranked as (select *,dense_rank() over(partition by dept_name order by salary desc) as rk
+from combined_data)
+
+select emp_name,dept_name,salary from ranked
+where rk = 1;
+
+
+INSERT INTO Emp_data VALUES
+(9, 'Abhi', 75000, 1),
+(10, 'Jhon', 98000, 1),
+(11, 'Harry', 86000, 2),
+(12, 'Sam', 58000, 2),
+(13, 'Maxy', 86000, 2),
+(14, 'Roy', 78000, 3),
+(15, 'Anju', 81000, 3),
+(16, 'Kavya', 78000, 3),
+(17,'Bhavish',96000,4),
+(18,'Suresh',72000,4);
+
+-- Department wise Top 3 Salary
+
+select * from emp_data;
+
+with joined_data as (
+	select e.name as employee_name, d.name as department_name, e.salary
+	from emp_data e
+	join department d
+	on e.departmentid = d.id),
+ranked_data as (select *, dense_rank() over(partition by department_name order by salary desc) as rk
+				from joined_data)
+                
+select employee_name,department_name,salary from ranked_data
+where rk <= 3;
+
+set sql_safe_updates= 0;
+
+-- How to update the Records
+
+update emp_data
+set salary = 82000
+where name = "Kiran";
+
+-- how to delete duplicates from tables
+
+delete from person
+where id in (select id from 
+(select *,roW_number() over(partition by email) as rw
+from person) as temp
+where rw <> 1);
+
+select * from person;
+
