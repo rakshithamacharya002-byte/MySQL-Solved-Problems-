@@ -212,6 +212,90 @@ difference as
 select * from difference
 where month_difference <> 1;
 
+create database advaced_concepts;
+
+use advaced_concepts;
+
+CREATE TABLE sessions (
+    session_id VARCHAR(10),
+    start_time DATETIME,
+    user_id VARCHAR(10)
+);
+
+INSERT INTO sessions VALUES
+('S001','2025-06-19 10:00:00','U101'),
+('S002','2025-06-19 10:05:00','U102'),
+('S003','2025-06-19 10:10:00','U101'),
+('S004','2025-06-19 10:15:00','U103'),
+('S005','2025-06-19 10:20:00','U102');
+
+CREATE TABLE page_views (
+    page_view_id VARCHAR(10),
+    session_id VARCHAR(10),
+    page_url VARCHAR(50),
+    view_time DATETIME
+);
+
+INSERT INTO page_views VALUES
+('PV001','S001','home','2025-06-19 10:00:15'),
+('PV002','S001','product','2025-06-19 10:01:00'),
+('PV003','S002','about','2025-06-19 10:05:30'),
+('PV004','S003','contact','2025-06-19 10:10:20'),
+('PV005','S003','faq','2025-06-19 10:11:00'),
+('PV006','S003','privacy','2025-06-19 10:11:45'),
+('PV007','S004','index','2025-06-19 10:15:40'),
+('PV008','S005','services','2025-06-19 10:20:10'),
+('PV009','S005','pricing','2025-06-19 10:21:00');
+
+select * from page_views;
+
+select * from sessions;
+
+--  Write a query to calculate the bounce rate for a website using session and page view data. 
+
+select * from page_views;
+
+select count(case when count_person=1 then "one session" else null end ) as count_person_with_one_pageview,
+count(count_person) as total_count,count(case when count_person=1 then "one session" else null end )/count(count_person) as bounce_rate
+from 
+(select session_id,count(*) count_person
+from page_views
+group by session_id) temp;
+
+-- Calculate Average Pages per Session
+
+SELECT AVG(page_count) AS avg_pages_per_session
+FROM (
+    SELECT session_id, COUNT(*) AS page_count
+    FROM page_views
+    GROUP BY session_id
+) AS session_pages;
+
+
+-- Sessions with More Than 2 Page Views
+
+SELECT session_id, COUNT(*) AS page_count
+FROM page_views
+GROUP BY session_id
+having page_count >2;
+
+select * from page_views;
+
+SELECT PAGE_URL,COUNT(*) AS VISITED_COUNT
+FROM PAGE_VIEWS
+GROUP BY PAGE_URL
+ORDER BY VISITED_COUNT DESC
+LIMIT 1;
+
+-- Users with Multiple Sessions
+
+select user_id, count(*)
+from sessions
+group by user_id
+having count(*)>1;
+
+
+
 
 
 
